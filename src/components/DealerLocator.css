@@ -13,11 +13,11 @@
     height: 500px;
 }
 
-.information {
+.infoWindow {
     max-width: 200px;
 }
 
-.information h4 {
+.infoWindow h4 {
     margin: 0 0 5px;
     padding: 0;
 }
@@ -53,7 +53,7 @@
     position: relative;
 }
 
-.dealersList .activeDealer {
+.dealersList .activeShop {
     background: #ebebeb;
 }
 
@@ -109,7 +109,7 @@
     margin-right: 10px;
     text-decoration: none;
     color: #999999;
-    transition: color .2s ease;
+    transition: color 0.2s ease;
 }
 
 .dealerActions a:hover {
@@ -124,7 +124,7 @@
     vertical-align: middle;
     margin-right: 3px;
     fill: #999999;
-    transform: full 0.2s ease;
+    transition: fill 0.2s ease;
 }
 
 .dealerDistance {

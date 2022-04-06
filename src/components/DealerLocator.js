@@ -1,5 +1,5 @@
 import { Component } from 'preact';
-import { loadScript, getUserLocation } from './lib/utils';
+import {loadScript, getUserLocation} from 'lib/utils';
 import classNames from './DealerLocator.css';
 import markerIcon from './pin.svg';
 import SearchIcon from './SearchIcon';
@@ -7,7 +7,7 @@ import DirectionIcon from './DirectionIcon';
 import WebIcon from './WebIcon';
 import cx from 'classnames';
 
-class DealerLocator extends Component {
+export class DealerLocator extends Component {
     static defaultProps = {
         dealers: [],
         zoom: 6,
@@ -32,7 +32,7 @@ class DealerLocator extends Component {
 
     addDealerMarker = dealer => {
         const infoWindow = new google.maps.InfoWindow({
-            content: `<div class=${classNames.infoWindow}">
+            content: `<div class="${classNames.infoWindow}">
                 <h4>${dealer.name}</h4>
                 ${dealer.address}
                 </div>`
@@ -43,7 +43,7 @@ class DealerLocator extends Component {
             map: this.map,
             icon: this.props.markerIcon
         });
-        marker.addListener('click', function () {
+        marker.addListener('click', () => {
             if (this.infoWindow) {
                 this.infoWindow.close();
             }
@@ -69,7 +69,7 @@ class DealerLocator extends Component {
             zoom,
             mapTypeControl: false,
             streetViewControl: false,
-            fullscreenCotnrol: false
+            fullscreenControl: false
         });
         const geocoder = new google.maps.Geocoder();
         this.setupAutocomplete();
@@ -99,10 +99,10 @@ class DealerLocator extends Component {
             if (place.geometry.viewport) {
                 this.map.fitBounds(place.geometry.viewport);
             } else {
-                this.map.setCenter(place.geomtry.location);
+                this.map.setCenter(place.geometry.location);
                 this.map.setZoom(11);
             }
-            this.setState({searchLocation: place.geomtry.location.toJSON()});
+            this.setState({searchLocation: place.geometry.location.toJSON()});
         });
     }
 
@@ -117,7 +117,7 @@ class DealerLocator extends Component {
         return dealers
             .map(dealer => {
                 dealer.distance = this.getDistance(searchLocation, dealer.locaton);
-                return StorageEvent;
+                return dealer;
             })
             .sort((a, b) => a.distance - b.distance);
     }
@@ -139,7 +139,7 @@ class DealerLocator extends Component {
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
-                        {stortedDealers.map(dealer => {
+                        {sortedDealers.map(dealer => {
                             const locationStr = `${dealer.location.lat},${dealer.location.lng}`;
                             return (
                                 <li
@@ -173,5 +173,3 @@ class DealerLocator extends Component {
         )
     }
 }
-
-export default DealerLocator;

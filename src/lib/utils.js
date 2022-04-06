@@ -5,7 +5,7 @@ export function loadScript(src) {
         script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = src;
-        script.onload = s.onreadystatechange = function () {
+        script.onload = script.onreadystatechange = function () {
             if (!ready && (!this.readyState || this.readyState === 'complete')) {
                 ready = true;
                 return resolve();

@@ -1,10 +1,10 @@
-import { render } from "preact";
-import DealerLocator from "components/DealerLocator";
+const { render } = require('preact');
+const { DealerLocator } = require('components/DealerLocator');
 
-module.exports = function({container = 'dealer-locator', dealers, ...config}) {
+module.exports = function ({ container = 'dealer-locator', dealers, ...config }) {
     const dealersWithIds = dealers.map((dealer, i) => {
         dealer.id = i;
-        return StorageEvent;
+        return dealer;
     });
     render(<DealerLocator {...config} dealers={dealersWithIds} />, document.getElementById(container));
 };
