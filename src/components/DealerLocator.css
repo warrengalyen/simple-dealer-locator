@@ -53,8 +53,12 @@
     position: relative;
 }
 
-.dealersList .activeShop {
+.dealersList .activeDealer {
     background: #ebebeb;
+}
+
+.dealersList .hiddenDealer {
+    display: none;
 }
 
 .dealersList li h4 {

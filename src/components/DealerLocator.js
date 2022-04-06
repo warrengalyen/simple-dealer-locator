@@ -28,7 +28,7 @@ export class DealerLocator extends Component {
         homeLocationHint: 'Current location',
         homeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/grn-pushpin.png',
         storeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png',
-        unitSystem: 0
+        unitSystem: 'METRIC'
     };
 
     constructor(props) {
@@ -218,7 +218,12 @@ export class DealerLocator extends Component {
             });
         }).then(data => {
             let result = data.sort((a, b) => a.distance - b.distance);
-            if (limit) result = result.slice(0, limit);
+            if (limit) {
+                result = result.map((dealer, i) => {
+                    dealer.hidden = i + 1 > limit;
+                    return dealer;
+                });
+            }
             this.clearMarkers();
             const bounds = new google.maps.LatLngBounds();
             bounds.extend(searchLocation);
@@ -258,7 +263,10 @@ export class DealerLocator extends Component {
                                 <li
                                     key={dealer.id}
                                     onClick={() => this.onDealerClick(dealer)}
-                                    className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
+                                    className={cx({
+                                        [classNames.activeDealer]: dealer.id === activeDealerId,
+                                        [classNames.hiddenDealer]: dealer.hidden
+                                    })}>
                                     <h4>{dealer.name}</h4>
                                     {dealer.distanceText && (
                                         <div className={classNames.dealerDistance}>
