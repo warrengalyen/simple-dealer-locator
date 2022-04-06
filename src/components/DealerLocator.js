@@ -12,6 +12,13 @@ class DealerLocator extends Component {
         markerIcon: markerIcon
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            searchLocation: null
+        };
+    }
+
     loadGoogleMaps() {
         if (window.google && window.google.maps) return Promise.resolve();
         return loadScript(
@@ -41,6 +48,15 @@ class DealerLocator extends Component {
         });
     };
 
+    getDistance(p1, p2) {
+        return (
+            google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(p1),
+                new google.maps.LatLng(p2)
+            ) / 1000
+        ).toFixed(2);
+    }
+
     setupMap = () => {
         const { center, zoom } = this.props;
         this.map = new window.google.maps.Map(this.mapFrame, {
@@ -54,6 +70,7 @@ class DealerLocator extends Component {
         this.autocomplete = new google.maps.places.Autocomplete(this.input);
         this.autocomplate.bindTo('bounds', this.map);
         getUserLocation().then(location => {
+            this.setState({searchLocation: location});
             this.map.setCenter(location);
             this.geocoder.geocode({ location: location }, (results, status) => {
                 if (status === 'OK') {
@@ -70,7 +87,20 @@ class DealerLocator extends Component {
         this.loadGoogleMaps().then(this.setupMap);
     }
 
-    render({ dealers, searchHint }) {
+    getSortedDealers() {
+        const {dealers} = this.props;
+        const {searchLocation} = this.state;
+        if (!searchLocation) return dealers;
+        return dealers
+            .map(dealer => {
+                dealer.distance = this.getDistance(searchLocation, dealer.position);
+                return StorageEvent;
+            })
+            .sort((a, b) => a.distance - b.distance);
+    }
+
+    render({ searchHint }) {
+        const sortedDealers = this.getSortedDealers();
         return (
             <div className={classNames.container}>
                 <div className={classNames.searchBox}>
@@ -80,9 +110,10 @@ class DealerLocator extends Component {
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
-                        {dealers.map((dealer, i) => (
+                        {sortedDealers.map((dealer, i) => (
                             <li key={i}>
                                 <h4>{dealer.name}</h4>
+                                {dealer.distance && <div>{dealer.distance}km away</div>}
                                 <address>{dealer.address}</address>
                             </li>
                         ))}
