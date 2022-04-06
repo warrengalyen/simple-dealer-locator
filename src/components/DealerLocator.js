@@ -1,5 +1,5 @@
 import { Component } from 'preact';
-import { loadScript } from './lib/utils';
+import { loadScript, getUserLocation } from './lib/utils';
 import classNames from './DealerLocator.css';
 import markerIcon from './pin.svg';
 import searchIcon from './search.svg';
@@ -8,30 +8,15 @@ class DealerLocator extends Component {
     static defaultProps = {
         dealers: [],
         zoom: 6,
-        center: {lat: 37.061050, lng: -122.007920},
+        center: { lat: 37.061050, lng: -122.007920 },
         markerIcon: markerIcon
     };
 
     loadGoogleMaps() {
-       if (window.google && window.google.maps) return Promise.resolve();
-       return loadScript(
+        if (window.google && window.google.maps) return Promise.resolve();
+        return loadScript(
             `https://maps.googleapis.com/maps/api/js?key=${this.props.apiKey}&libraries=geometry,places`
-       );
-    }
-
-    centerOnUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                p => {
-                    this.map.setCenter(new google.maps.LatLng(p.coords.latitude, p.coords.longitude));
-                },
-                () => {
-                    throw new Error('user denied request for position');
-                }
-            );
-        } else {
-            throw new Error('no geolocation support')
-        }
+        );
     }
 
     addDealerMarker = dealer => {
@@ -47,7 +32,7 @@ class DealerLocator extends Component {
             map: this.map,
             icon: this.props.markerIcon
         });
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             if (this.infoWindow) {
                 this.infoWindow.close();
             }
@@ -57,7 +42,7 @@ class DealerLocator extends Component {
     };
 
     setupMap = () => {
-        const {center, zoom} = this.props;
+        const { center, zoom } = this.props;
         this.map = new window.google.maps.Map(this.mapFrame, {
             center,
             zoom,
@@ -65,21 +50,27 @@ class DealerLocator extends Component {
             streetViewControl: false,
             fullscreenCotnrol: false
         });
-        this.centerOnUserLocation();
-        this.props.dealers.forEach(this.addDealerMarker);
-        this.setupAutoComplete();
-    };
-
-    setupAutoComplete = () => {
+        this.geocoder = new google.maps.Geocoder();
         this.autocomplete = new google.maps.places.Autocomplete(this.input);
         this.autocomplate.bindTo('bounds', this.map);
+        getUserLocation().then(location => {
+            this.map.setCenter(location);
+            this.geocoder.geocode({ location: location }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        this.input.value = results[0].formatted_address;
+                    }
+                }
+            });
+        });
+        this.props.dealers.forEach(this.addDealerMarker);
     };
 
     componentDidMount() {
         this.loadGoogleMaps().then(this.setupMap);
     }
 
-    render({dealers, searchHint}) {
+    render({ dealers, searchHint }) {
         return (
             <div className={classNames.container}>
                 <div className={classNames.searchBox}>
