@@ -3,6 +3,7 @@ import { loadScript, getUserLocation } from './lib/utils';
 import classNames from './DealerLocator.css';
 import markerIcon from './pin.svg';
 import searchIcon from './search.svg';
+import cx from 'classnames';
 
 class DealerLocator extends Component {
     static defaultProps = {
@@ -15,7 +16,8 @@ class DealerLocator extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            searchLocation: null
+            searchLocation: null,
+            activeDealerId: null
         };
     }
 
@@ -34,7 +36,7 @@ class DealerLocator extends Component {
                 </div>`
         });
         const marker = new google.maps.Marker({
-            position: dealer.position,
+            position: dealer.location,
             title: dealer.name,
             map: this.map,
             icon: this.props.markerIcon
@@ -45,6 +47,7 @@ class DealerLocator extends Component {
             }
             infoWindow.open(this.map, marker);
             this.infoWindow = infoWindow;
+            this.setState({activeDealerId: dealer.id});
         });
     };
 
@@ -111,13 +114,19 @@ class DealerLocator extends Component {
         if (!searchLocation) return dealers;
         return dealers
             .map(dealer => {
-                dealer.distance = this.getDistance(searchLocation, dealer.position);
+                dealer.distance = this.getDistance(searchLocation, dealer.locaton);
                 return StorageEvent;
             })
             .sort((a, b) => a.distance - b.distance);
     }
 
-    render({ searchHint }) {
+    onDealerClick({location, id}) {
+        this.map.setCenter(location);
+        this.map.setZoom(16);
+        this.setState({activeDealerId: id});
+    }
+
+    render({searchHint}, {activeDealerId}) {
         const sortedDealers = this.getSortedDealers();
         return (
             <div className={classNames.container}>
@@ -128,8 +137,11 @@ class DealerLocator extends Component {
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
-                        {sortedDealers.map((dealer, i) => (
-                            <li key={i}>
+                        {sortedDealers.map(dealer => (
+                            <li
+                                key={dealer.id}
+                                onClick={() => this.onDealerClick(dealer)}
+                                className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
                                 <h4>{dealer.name}</h4>
                                 {dealer.distance && <div>{dealer.distance}km away</div>}
                                 <address>{dealer.address}</address>
