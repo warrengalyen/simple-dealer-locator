@@ -1,0 +1,16 @@
+.container {
+
+}
+
+.map {
+    height: 400px;
+}
+
+.information {
+    max-width: 200px;
+}
+
+.information h4 {
+    margin: 0 0 5px;
+    padding: 0;
+}
