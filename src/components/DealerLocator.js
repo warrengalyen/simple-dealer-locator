@@ -3,7 +3,6 @@ import cx from 'classnames';
 import {getUserLocation, loadScript} from 'lib/utils';
 import { Component } from 'preact';
 import DirectionIcon from './DirectionIcon';
-import markerIcon from './pin.svg';
 import SearchIcon from './SearchIcon';
 import classNames from './DealerLocator.css';
 import WebIcon from './WebIcon';
@@ -26,10 +25,10 @@ export class DealerLocator extends Component {
         zoom: 6,
         center: { lat: 37.061050, lng: -122.007920 },
         travelMode: 'DRIVING',
-        unitSystem: 0,
-        dealerMarkerIcon: markerIcon,
-        homeMarkerIcon: markerIcon,
-        markerIconSize: [40, 60]
+        homeLocationHint: 'Current location',
+        homeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/grn-pushpin.png',
+        storeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png',
+        unitSystem: 0
     };
 
     constructor(props) {
@@ -50,8 +49,9 @@ export class DealerLocator extends Component {
     }
 
     getMarkerIcon(icon) {
+        if (!icon) return null;
         const {markerIconSize} = this.props;
-        if (typeof icon === 'string') {
+        if (typeof icon === 'string' && markerIconSize) {
             const iconSize = markerIconSize;
             return {
                 url: icon,
@@ -134,12 +134,22 @@ export class DealerLocator extends Component {
         if (this.homeMarker) {
             this.homeMarker.setMap(null);
         }
+        const infoWindow = new google.maps.InfoWindow({
+            content: this.props.homeLocationHint
+        });
         this.homeMarker = new google.maps.Marker({
             position: location,
-            title: 'My location',
+            title: this.props.homeLocationHint,
             map: this.map,
             icon: this.getMarkerIcon(this.props.homeMarkerIcon)
         });
+        this.homeMarker.addListener('click', () => {
+            if (this.infoWindow) {
+                this.infoWindow.close();
+            }
+            this.infoWindow.open(this.map, this.homeMarker);
+            this.infoWindow = infoWindow;
+        })
     }
 
     setupMap = () => {
