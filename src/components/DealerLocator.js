@@ -137,16 +137,24 @@ class DealerLocator extends Component {
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
-                        {sortedDealers.map(dealer => (
-                            <li
-                                key={dealer.id}
-                                onClick={() => this.onDealerClick(dealer)}
-                                className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
-                                <h4>{dealer.name}</h4>
-                                {dealer.distance && <div>{dealer.distance}km away</div>}
-                                <address>{dealer.address}</address>
-                            </li>
-                        ))}
+                        {stortedDealers.map(dealer => {
+                            const locationStr = `${dealer.location.lat},${dealer.location.lng}`;
+                            return (
+                                <li
+                                    key={dealer.id}
+                                    onClick={() => this.onDealerClick(dealer)}
+                                    className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
+                                    <h4>{dealer.name}</h4>
+                                    {dealer.distance && <div>{dealer.distance}km away</div>}
+                                    <address>{dealer.address}</address>
+                                    <div className={classNames.dealerActions} onClick={e => e.stopPropagation()}>
+                                        <a target="_blank" href={`https://www.google.com/maps?daddr=@${locationStr}`}>
+                                            Directions
+                                        </a>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
                 <div className={classNames.map} ref={mapFrame => (this.mapFrame = mapFrame)} />
