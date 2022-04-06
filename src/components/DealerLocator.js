@@ -147,7 +147,9 @@ class DealerLocator extends Component {
                                     onClick={() => this.onDealerClick(dealer)}
                                     className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
                                     <h4>{dealer.name}</h4>
-                                    {dealer.distance && <div className={classNames.dealerDistance}>{dealer.distance}km away</div>}
+                                    {dealer.distance && (
+                                        <div className={classNames.dealerDistance}>{dealer.distance}km away</div>
+                                    )}
                                     <address>{dealer.address}</address>
                                     <div className={classNames.dealerActions} onClick={e => e.stopPropagation()}>
                                         <a target="_blank" href={`https://www.google.com/maps?daddr=@${locationStr}`}>
