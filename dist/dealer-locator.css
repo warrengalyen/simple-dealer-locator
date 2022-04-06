@@ -1,16 +1,22 @@
 .dealerLocator-container {
     position: relative;
     background: #fff;
+    display: flex;
 }
 
 .dealerLocator-container * {
     box-sizing: border-box;
 }
 
+.dealerLocator-container.dealerLocator-fullWidthMap .dealerLocator-searchBox {
+    position: absolute;
+}
+
 .dealerLocator-map {
     border: 1px solid #d7d7d7;
     background-color: rgb(229, 227, 223);
     height: 500px;
+    flex: 1;
 }
 
 .dealerLocator-infoWindow {
@@ -24,16 +30,17 @@
 
 .dealerLocator-searchBox {
     border: 1px solid #d7d7d7;
+    border-right: 0;
     display: flex;
     flex-direction: column;
     padding: 15px;
-    position: absolute;
     top: 15px;
     bottom: 30px;
     left: 10px;
     width: 350px;
     background: #fff;
     z-index: 1;
+    max-height: 500px;
 }
 
 .dealerLocator-dealersList {
@@ -53,13 +60,18 @@
     position: relative;
 }
 
-.dealerLocator-dealersList .dealerLocator-activeShop {
+.dealerLocator-dealersList .dealerLocator-hiddenDealer {
+    opacity: 0.3;
+}
+
+.dealerLocator-dealersList .dealerLocator-activeDealer {
     background: #ebebeb;
+    opacity: 1;
 }
 
 .dealerLocator-dealersList li h4 {
     margin: 0 0 5px;
-    font-size: 14px;
+    font-size: 1em;
 }
 
 .dealerLocator-dealersList li address {
@@ -79,7 +91,7 @@
     height: 36px;
     width: 100%;
     padding: 0 36px 0 15px;
-    font-size: 14px;
+    font-size: 1em;
     outline: none;
 }
 
@@ -96,13 +108,13 @@
 .dealerLocator-searchHint {
     margin-bottom: 10px;
     padding: 0 2px 0;
-    font-size: 14px;
+    font-size: 0.9em;
     color: #696969;
 }
 
 .dealerLocator-dealerActions {
     text-transform: uppercase;
-    font-size: 13px;
+    font-size: 0.9em;
 }
 
 .dealerLocator-dealerActions a {
@@ -129,7 +141,7 @@
 
 .dealerLocator-dealerDistance {
     color: #999999;
-    font-size: 14px;
+    font-size: 0.9em;
     margin-bottom: 5px;
 }
 

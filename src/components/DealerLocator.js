@@ -1,4 +1,4 @@
-import Promise from 'bluebird';
+import promiseMap from 'p-map';
 import cx from 'classnames';
 import {getUserLocation, loadScript} from 'lib/utils';
 import { Component } from 'preact';
@@ -216,7 +216,7 @@ export class DealerLocator extends Component {
     calculateDistance(searchLocation) {
         const {dealers, limit} = this.props;
         if (!searchLocation) return dealers;
-        Promise.map(dealers, dealer => {
+        promiseMap(dealers, dealer => {
             return this.getDistance(searchLocation, dealer.location).then(result => {
                 Object.assign(dealer, result);
                 return dealer;
@@ -232,7 +232,7 @@ export class DealerLocator extends Component {
                 if (!dealer.hidden) {
                     marker.setOpacity(this.props.farAwayMarkerOpacity);
                 } else {
-                    console.log('extend bounds to', dealer);
+                    bounds.extens(dealer.location);
                 }
                 return dealer;
             });

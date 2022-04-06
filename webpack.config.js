@@ -33,7 +33,7 @@ module.exports = function(options) {
     module: {
       rules: [
         {
-          exclude: /node_modules/,
+          exclude: /node_modules\/(?!(p-map)\/).*/,
           loader: 'babel-loader',
           options: {
             cacheDirectory: true,
