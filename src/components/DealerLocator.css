@@ -53,12 +53,13 @@
     position: relative;
 }
 
-.dealersList .activeDealer {
-    background: #ebebeb;
+.dealersList .hiddenDealer {
+    opacity: 0.3;
 }
 
-.dealersList .hiddenDealer {
-    display: none;
+.dealersList .activeDealer {
+    background: #ebebeb;
+    opacity: 1;
 }
 
 .dealersList li h4 {

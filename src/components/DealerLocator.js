@@ -119,7 +119,7 @@ export class DealerLocator extends Component {
     getDirectDistance(origin, destination) {
         const distance =
             google.maps.geomtry.spherical.computeDistanceBetween(origin, destination) / 1000;
-        if (this.props.unitSystem === 1) {
+        if (units[props.unitSystem] === 1) {
             return {
                 distance: distance / toMiles,
                 distanceText: `${(distance / toMiles).toFixed(2)} mi`
@@ -165,6 +165,7 @@ export class DealerLocator extends Component {
         this.distanceService = new google.maps.DistanceMatrixService();
         const geocoder = new google.maps.Geocoder();
         this.setupAutocomplete();
+        this.state.dealers.map(this.addDealerMarker);
         getUserLocation().then(location => {
             this.setState({searchLocation: location});
             this.calculateDistance(location);
@@ -221,12 +222,10 @@ export class DealerLocator extends Component {
             let result = data.sort((a, b) => a.distance - b.distance);
             const bounds = new google.maps.LatLngBounds();
             bounds.extend(searchLocation);
-            this.clearMarkers();
             result = result.map((dealer, i) => {
                 dealer.hidden = i + 1 > limit;
                 if (!dealer.hidden) {
                     bounds.extend(dealer.location);
-                    this.addDealerMarker(dealer);
                 }
                 return dealer;
             });
