@@ -2,6 +2,7 @@ import { Component } from 'preact';
 import { loadScript } from './lib/utils';
 import classNames from './DealerLocator.css';
 import markerIcon from './pin.svg';
+import searchIcon from './search.svg';
 
 class DealerLocator extends Component {
     static defaultProps = {
@@ -55,7 +56,7 @@ class DealerLocator extends Component {
         });
     };
 
-    constructMap = () => {
+    setupMap = () => {
         const {center, zoom} = this.props;
         this.map = new window.google.maps.Map(this.mapFrame, {
             center,
@@ -66,16 +67,27 @@ class DealerLocator extends Component {
         });
         this.centerOnUserLocation();
         this.props.dealers.forEach(this.addDealerMarker);
+        this.setupAutoComplete();
+    };
+
+    setupAutoComplete = () => {
+        this.autocomplete = new google.maps.places.Autocomplete(this.input);
+        this.autocomplate.bindTo('bounds', this.map);
     };
 
     componentDidMount() {
-        this.loadGoogleMaps().then(this.constructMap);
+        this.loadGoogleMaps().then(this.setupMap);
     }
 
-    render({dealers}) {
+    render({dealers, searchHint}) {
         return (
             <div className={classNames.container}>
                 <div className={classNames.searchBox}>
+                    <div className={classNames.searchInput}>
+                        <input type="text" ref={input => (this.input = input)} />
+                        <img className={classNames.searchIcon} src={searchIcon} />
+                    </div>
+                    {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
                         {dealers.map((dealer, i) => (
                             <li key={i}>
