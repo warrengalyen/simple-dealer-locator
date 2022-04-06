@@ -59,7 +59,7 @@ export class DealerLocator extends Component {
     }
 
     loadDealers = async searchLocation => {
-        if (!this.props.loadDealers) return;
+        if (!this.props.loadDealers) return this.state.dealers;
         let dealers = await this.props.loadDealers(searchLocation);
         dealers = this.addDealerIds(dealers);
         this.setState({stores});
