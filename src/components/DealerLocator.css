@@ -1,5 +1,6 @@
 .container {
     position: relative;
+    background: #fff;
 }
 
 .container * {
@@ -48,9 +49,10 @@
     color: #333333;
     padding: 15px;
     margin: 0 0 1px 0;
-    transition: background .2s ease;
+    transition: background 0.2s ease;
     position: relative;
 }
+
 .dealersList .activeDealer {
     background: #ebebeb;
 }
@@ -122,11 +124,46 @@
     vertical-align: middle;
     margin-right: 3px;
     fill: #999999;
-    transform: full .2s ease;
+    transform: full 0.2s ease;
 }
 
 .dealerDistance {
     color: #999999;
     font-size: 14px;
     margin-bottom: 5px;
+}
+
+@media (max-width: 767px) {
+    .searchBox {
+        padding: 10px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: auto;
+        width: auto;
+    }
+
+    .dealersList {
+        position: absolute;
+        top: 350px;
+        left: -11px;
+        right: -11px;
+        height: 250px;
+    }
+
+    .map {
+        height: 350px;
+    }
+
+    .searchHint {
+        display: none;
+    }
+
+    .searchInput {
+        margin-bottom: 0;
+    }
+
+    .container {
+        padding-bottom: 270px;
+    }
 }
