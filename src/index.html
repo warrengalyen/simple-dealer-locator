@@ -6,10 +6,16 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Dealer Locator</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <link rel="stylesheet" href="dealer-locator.css">
+    <style>
+      body {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Locator</h1>
     <div id="my-dealer-locator">
         <!-- map will be rendered here -->
     </div>
@@ -17,15 +23,11 @@
     <script>
       dealerLocator({
         container: 'my-dealer-locator',
-        center: {lat: 37.061050, lng: -122.007920},
-        travelMode: 'WALKING',
-        unitSystem: 'IMPERIAL',
-        dealerMarkerIcon: './school.png',
-        homeMarkerIcon: './house.png',
-        markerIconSize: [40, 62],
-        limit: 2,
         apiKey: 'AIzaSyB2EeSi2CQB7sDR8q65jOa9VwYjGDAuam0',
+        markerIconSize: [40, 40],
+        limit: 1,
         searchHint: "Not all dealers sell our whole range so if you're looking for a specific product we recommend you call ahead.",
+        homeLocationHint: 'Current location',
         dealers: [
           {
             name: 'ADELAIDE HARLEY-DAVIDSON BIKEWORKS',
@@ -40,7 +42,7 @@
           },
           {
             name: "AJ'S MOTORCYCLES, PARTS & APPAREL",
-            details: '4 PURCELL STREET SHEPPARTON, VIC 3630, AU',
+            address: '4 PURCELL STREET SHEPPARTON, VIC 3630, AU',
             location: {lat: -36.3836446, lng: 145.4068033}
           },
         ]

@@ -29,7 +29,9 @@ export class DealerLocator extends Component {
         homeLocationHint: 'Current location',
         homeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/grn-pushpin.png',
         storeMarkerIcon: 'http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png',
-        unitSystem: 'METRIC'
+        unitSystem: 'METRIC',
+        farAwayMarkerOpacity: 0.6,
+        fullWidthMap: false
     };
 
     constructor(props) {
@@ -85,6 +87,7 @@ export class DealerLocator extends Component {
             this.setState({activeDealerId: dealer.id});
         });
         this.markers.push(marker);
+        return marker;
     };
 
     getDistance(p1, p2) {
@@ -222,15 +225,19 @@ export class DealerLocator extends Component {
             let result = data.sort((a, b) => a.distance - b.distance);
             const bounds = new google.maps.LatLngBounds();
             bounds.extend(searchLocation);
+            this.clearMarkers();
             result = result.map((dealer, i) => {
                 dealer.hidden = i + 1 > limit;
+                const marker = this.addDealerMarker(dealer);
                 if (!dealer.hidden) {
-                    bounds.extend(dealer.location);
+                    marker.setOpacity(this.props.farAwayMarkerOpacity);
+                } else {
+                    console.log('extend bounds to', dealer);
                 }
                 return dealer;
             });
             this.map.fitBounds(bounds);
-            this.map.setZoom(this.map.getZoom() - 1);
+            this.map.setCenter(bounds.getCenter(), this.map.getZoom() - 1);
             this.setState({dealers: result});
         });
     }
@@ -245,9 +252,9 @@ export class DealerLocator extends Component {
         this.setState({activeDealerId: id});
     }
 
-    render({searchHint, travelMode}, {activeDealerId, dealers}) {
+    render({searchHint, travelMode, fullWidthMap}, {activeDealerId, dealers}) {
         return (
-            <div className={classNames.container}>
+            <div className={cx(classNames.container, {[classNames.fullWidthMap]: fullWidthMap})}>
                 <div className={classNames.searchBox}>
                     <div className={classNames.searchInput}>
                         <input type="text" ref={input => (this.input = input)} />
