@@ -2,7 +2,9 @@ import { Component } from 'preact';
 import { loadScript, getUserLocation } from './lib/utils';
 import classNames from './DealerLocator.css';
 import markerIcon from './pin.svg';
-import searchIcon from './search.svg';
+import SearchIcon from './SearchIcon';
+import DirectionIcon from './DirectionIcon';
+import WebIcon from './WebIcon';
 import cx from 'classnames';
 
 class DealerLocator extends Component {
@@ -133,7 +135,7 @@ class DealerLocator extends Component {
                 <div className={classNames.searchBox}>
                     <div className={classNames.searchInput}>
                         <input type="text" ref={input => (this.input = input)} />
-                        <img className={classNames.searchIcon} src={searchIcon} />
+                        <SearchIcon className={classNames.searchIcon} />
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
@@ -145,12 +147,19 @@ class DealerLocator extends Component {
                                     onClick={() => this.onDealerClick(dealer)}
                                     className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
                                     <h4>{dealer.name}</h4>
-                                    {dealer.distance && <div>{dealer.distance}km away</div>}
+                                    {dealer.distance && <div className={classNames.dealerDistance}>{dealer.distance}km away</div>}
                                     <address>{dealer.address}</address>
                                     <div className={classNames.dealerActions} onClick={e => e.stopPropagation()}>
                                         <a target="_blank" href={`https://www.google.com/maps?daddr=@${locationStr}`}>
-                                            Directions
-                                        </a>
+                                            <DirectionIcon />
+                                            directions
+                                        </a>{' '}
+                                        {dealer.website && (
+                                            <a target="_blank" href={dealer.website}>
+                                                <WebIcon />
+                                                website
+                                            </a>
+                                        )}
                                     </div>
                                 </li>
                             );
