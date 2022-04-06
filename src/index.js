@@ -1,9 +1,15 @@
 import { render } from "preact";
 import DealerLocator from "components/DealerLocator";
 
-module.exports = function({container, stores, apiKey, zoom, defaultCenter}) {
+module.exports = function({container, stores, apiKey, zoom, defaultCenter, markerIcon}) {
     render(
-        <DealerLocator stores={stores} apiKey={apiKey} zoom={zoom} defaultCenter={defaultCenter} />,
+        <DealerLocator 
+            dealers={dealers} 
+            apiKey={apiKey} 
+            zoom={zoom} 
+            defaultCenter={defaultCenter} 
+            markerIcon={markerIcon}
+        />,
         document.getElementById(container)
     );
 };
