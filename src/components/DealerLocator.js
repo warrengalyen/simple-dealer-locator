@@ -14,7 +14,7 @@ class DealerLocator extends Component {
     loadGoogleMaps() {
        if (window.google && window.google.maps) return Promise.resolve();
        return loadScript(
-            `https://maps.googleapis.com/maps/api/js?key=${this.props.apiKey}&libraries=geometry`
+            `https://maps.googleapis.com/maps/api/js?key=${this.props.apiKey}&libraries=geometry,places`
        );
     }
 
@@ -36,13 +36,13 @@ class DealerLocator extends Component {
     addDealerMarker = dealer => {
         const infoWindow = new google.maps.InfoWindow({
             content: `<div class=${classNames.infoWindow}">
-                <h4>${dealer.title}</h4>
-                ${dealer.details}
+                <h4>${dealer.name}</h4>
+                ${dealer.address}
                 </div>`
         });
         const marker = new google.maps.Marker({
             position: dealer.position,
-            title: dealer.title,
+            title: dealer.name,
             map: this.map,
             icon: this.props.markerIcon
         });
@@ -59,7 +59,10 @@ class DealerLocator extends Component {
         const {center, zoom} = this.props;
         this.map = new window.google.maps.Map(this.mapFrame, {
             center,
-            zoom
+            zoom,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenCotnrol: false
         });
         this.centerOnUserLocation();
         this.props.dealers.forEach(this.addDealerMarker);
@@ -69,9 +72,19 @@ class DealerLocator extends Component {
         this.loadGoogleMaps().then(this.constructMap);
     }
 
-    render() {
+    render({dealers}) {
         return (
             <div className={classNames.container}>
+                <div className={classNames.searchBox}>
+                    <ul className={classNames.dealersList}>
+                        {dealers.map((dealer, i) => (
+                            <li key={i}>
+                                <h4>{dealer.name}</h4>
+                                <address>{dealer.address}</address>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
                 <div className={classNames.map} ref={mapFrame => (this.mapFrame = mapFrame)} />
             </div>
         )
