@@ -23,6 +23,7 @@ export class DealerLocator extends Component {
     static defaultProps = {
         dealers: [],
         zoom: 6,
+        limit: 10,
         center: { lat: 37.061050, lng: -122.007920 },
         travelMode: 'DRIVING',
         homeLocationHint: 'Current location',
@@ -218,18 +219,16 @@ export class DealerLocator extends Component {
             });
         }).then(data => {
             let result = data.sort((a, b) => a.distance - b.distance);
-            if (limit) {
-                result = result.map((dealer, i) => {
-                    dealer.hidden = i + 1 > limit;
-                    return dealer;
-                });
-            }
-            this.clearMarkers();
             const bounds = new google.maps.LatLngBounds();
             bounds.extend(searchLocation);
-            result.forEach(dealer => {
-                bounds.extend(dealer.location);
-                this.addDealerMarker(dealer);
+            this.clearMarkers();
+            result = result.map((dealer, i) => {
+                dealer.hidden = i + 1 > limit;
+                if (!dealer.hidden) {
+                    bounds.extend(dealer.location);
+                    this.addDealerMarker(dealer);
+                }
+                return dealer;
             });
             this.map.fitBounds(bounds);
             this.map.setZoom(this.map.getZoom() - 1);
