@@ -39,17 +39,32 @@ export class DealerLocator extends Component {
         this.state = {
             searchLocation: null,
             activeDealerId: null,
-            dealers: props.dealers
+            dealers: this.addDealerIds(props.dealers)
         };
         this.markers = [];
     }
 
-    loadGoogleMaps() {
+    addDealerIds(dealers = []) {
+        return dealers.map((dealer, i) => {
+            dealer.id = dealer.id || i;
+            return dealer;
+        });
+    }
+
+    async loadGoogleMaps() {
         if (window.google && window.google.maps) return Promise.resolve();
         return loadScript(
             `https://maps.googleapis.com/maps/api/js?key=${this.props.apiKey}&libraries=geometry,places`
         );
     }
+
+    loadDealers = async searchLocation => {
+        if (!this.props.loadDealers) return;
+        let dealers = await this.props.loadDealers(searchLocation);
+        dealers = this.addDealerIds(dealers);
+        this.setState({stores});
+        return dealers;
+    };
 
     getMarkerIcon(icon) {
         if (!icon) return null;
@@ -90,7 +105,7 @@ export class DealerLocator extends Component {
         return marker;
     };
 
-    getDistance(p1, p2) {
+    async getDistance(p1, p2) {
         const origin = new google.maps.LatLng(p1);
         const destination = new google.maps.LatLng(p2);
         const directDistance = this.getDirectDistance(origin, destination);
@@ -121,8 +136,8 @@ export class DealerLocator extends Component {
 
     getDirectDistance(origin, destination) {
         const distance =
-            google.maps.geomtry.spherical.computeDistanceBetween(origin, destination) / 1000;
-        if (units[props.unitSystem] === 1) {
+            google.maps.geometry.spherical.computeDistanceBetween(origin, destination) / 1000;
+        if (units[this.props.unitSystem] === 1) {
             return {
                 distance: distance / toMiles,
                 distanceText: `${(distance / toMiles).toFixed(2)} mi`
@@ -151,12 +166,12 @@ export class DealerLocator extends Component {
             if (this.infoWindow) {
                 this.infoWindow.close();
             }
-            this.infoWindow.open(this.map, this.homeMarker);
+            infoWindow.open(this.map, this.homeMarker);
             this.infoWindow = infoWindow;
         })
     }
 
-    setupMap = () => {
+    setupMap = async () => {
         const { center, zoom } = this.props;
         this.map = new window.google.maps.Map(this.mapFrame, {
             center,
@@ -169,19 +184,19 @@ export class DealerLocator extends Component {
         const geocoder = new google.maps.Geocoder();
         this.setupAutocomplete();
         this.state.dealers.map(this.addDealerMarker);
-        getUserLocation().then(location => {
-            this.setState({searchLocation: location});
-            this.calculateDistance(location);
-            this.map.setCenter(location);
-            this.map.setZoom(11);
-            this.setHomeMarker(location);
-            geocoder.geocode({ location: location }, (results, status) => {
-                if (status === 'OK') {
-                    if (results[0]) {
-                        this.input.value = results[0].formatted_address;
-                    }
+        const location = await getUserLocation()
+        this.setState({searchLocation: location});
+        this.calculateDistance(location);
+        this.map.setCenter(location);
+        this.map.setZoom(11);
+        this.setHomeMarker(location);
+
+        geocoder.geocode({location: location}, (results, status) => {
+            if (status === 'OK') {
+                if (results[0]) {
+                    this.input.value = results[0].formatted_address;
                 }
-            });
+            }
         });
     };
 
@@ -213,37 +228,39 @@ export class DealerLocator extends Component {
         this.markers = [];
     }
 
-    calculateDistance(searchLocation) {
-        const {dealers, limit} = this.props;
-        if (!searchLocation) return dealers;
-        promiseMap(dealers, dealer => {
+    async calculateDistance(searchLocation) {
+        const {limit} = this.props;
+        if (!searchLocation) return this.props.dealers;
+        const dealers = await this.loadDealers(searchLocation);
+        const data = await promiseMap(dealers, dealer => {
             return this.getDistance(searchLocation, dealer.location).then(result => {
                 Object.assign(dealer, result);
                 return dealer;
             });
-        }).then(data => {
-            let result = data.sort((a, b) => a.distance - b.distance);
-            const bounds = new google.maps.LatLngBounds();
-            bounds.extend(searchLocation);
-            this.clearMarkers();
-            result = result.map((dealer, i) => {
-                dealer.hidden = i + 1 > limit;
-                const marker = this.addDealerMarker(dealer);
-                if (!dealer.hidden) {
-                    marker.setOpacity(this.props.farAwayMarkerOpacity);
-                } else {
-                    bounds.extens(dealer.location);
-                }
-                return dealer;
-            });
-            this.map.fitBounds(bounds);
-            this.map.setCenter(bounds.getCenter(), this.map.getZoom() - 1);
-            this.setState({dealers: result});
         });
+        let result = data.sort((a, b) => a.distance - b.distance);
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(searchLocation);
+        this.clearMarkers();
+        result = result.map((dealer, i) => {
+            dealer.hidden = i + 1 > limit;
+            const marker = this.addDealerMarker(dealer);
+            if (dealer.hidden) {
+                marker.setOpacity(this.props.farAwayMarkerOpacity);
+            } else {
+                bounds.extend(dealer.location);
+            }
+            return dealer;
+        });
+        this.map.fitBounds(bounds);
+        this.map.setCenter(bounds.getCenter(), this.map.getZoom() - 1);
+        this.setState({dealers: result});
     }
 
     componentDidMount() {
-        this.loadGoogleMaps().then(this.setupMap);
+        this.loadGoogleMaps()
+            .then(this.loadDealers)
+            .then(this.setupMap);
     }
 
     onDealerClick({location, id}) {
