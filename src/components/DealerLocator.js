@@ -1,26 +1,45 @@
+import Promise from 'bluebird';
+import cx from 'classnames';
+import {getUserLocation, loadScript} from 'lib/utils';
 import { Component } from 'preact';
-import {loadScript, getUserLocation} from 'lib/utils';
-import classNames from './DealerLocator.css';
+import DirectionIcon from './DirectionIcon';
 import markerIcon from './pin.svg';
 import SearchIcon from './SearchIcon';
-import DirectionIcon from './DirectionIcon';
+import classNames from './DealerLocator.css';
 import WebIcon from './WebIcon';
-import cx from 'classnames';
+
+const travelModes = {
+    DRIVING: 'car',
+    WALKING: 'walk'
+};
+
+const units = {
+    METRIC: 0,
+    IMPERIAL: 1
+};
+
+const toMiles = 1.609;
 
 export class DealerLocator extends Component {
     static defaultProps = {
         dealers: [],
         zoom: 6,
         center: { lat: 37.061050, lng: -122.007920 },
-        markerIcon: markerIcon
+        travelMode: 'DRIVING',
+        unitSystem: 0,
+        dealerMarkerIcon: markerIcon,
+        homeMarkerIcon: markerIcon,
+        markerIconSize: [40, 60]
     };
 
     constructor(props) {
         super(props);
         this.state = {
             searchLocation: null,
-            activeDealerId: null
+            activeDealerId: null,
+            dealers: props.dealers
         };
+        this.markers = [];
     }
 
     loadGoogleMaps() {
@@ -30,6 +49,18 @@ export class DealerLocator extends Component {
         );
     }
 
+    getMarkerIcon(icon) {
+        const {markerIconSize} = this.props;
+        if (typeof icon === 'string') {
+            const iconSize = markerIconSize;
+            return {
+                url: icon,
+                scaledSize: new google.maps.Size(iconSize[0], iconSize[1])
+            };
+        }
+        return icon;
+    }
+
     addDealerMarker = dealer => {
         const infoWindow = new google.maps.InfoWindow({
             content: `<div class="${classNames.infoWindow}">
@@ -37,11 +68,12 @@ export class DealerLocator extends Component {
                 ${dealer.address}
                 </div>`
         });
+
         const marker = new google.maps.Marker({
             position: dealer.location,
             title: dealer.name,
             map: this.map,
-            icon: this.props.markerIcon
+            icon: this.getMarkerIcon(this.props.dealerMarkerIcon)
         });
         marker.addListener('click', () => {
             if (this.infoWindow) {
@@ -51,15 +83,63 @@ export class DealerLocator extends Component {
             this.infoWindow = infoWindow;
             this.setState({activeDealerId: dealer.id});
         });
+        this.markers.push(marker);
     };
 
     getDistance(p1, p2) {
-        return (
-            google.maps.geometry.spherical.computeDistanceBetween(
-                new google.maps.LatLng(p1),
-                new google.maps.LatLng(p2)
-            ) / 1000
-        ).toFixed(2);
+        const origin = new google.maps.LatLng(p1);
+        const destination = new google.maps.LatLng(p2);
+        const directDistance = this.getDirectDistance(origin, destination);
+        return new Promise(resolve => {
+            this.distanceService.getDistanceMatrix(
+                {
+                    origins: [origin],
+                    destinations: [destination],
+                    travelMode: this.props.travelMode,
+                    unitSystem: units[this.props.unitSystem],
+                    durationInTraffic: true,
+                    avoidHighways: false,
+                    avoidTolls: false
+                },
+                (response, status) => {
+                    if (status !== 'OK') return resolve(directDistance);
+                    const route = response.rows[0].elements[0];
+                    if (route.status !== 'OK') return resolve(directDistance);
+                    resolve({
+                        distance: route.distance.value,
+                        distanceText: route.distance.text,
+                        durationText: route.duration.text
+                    });
+                }
+            );
+        });
+    }
+
+    getDirectDistance(origin, destination) {
+        const distance =
+            google.maps.geomtry.spherical.computeDistanceBetween(origin, destination) / 1000;
+        if (this.props.unitSystem === 1) {
+            return {
+                distance: distance / toMiles,
+                distanceText: `${(distance / toMiles).toFixed(2)} mi`
+            };
+        }
+        return {
+            distance,
+            distanceText: `${distance.toFixed(2)} km`
+        };
+    }
+
+    setHomeMarker(location) {
+        if (this.homeMarker) {
+            this.homeMarker.setMap(null);
+        }
+        this.homeMarker = new google.maps.Marker({
+            position: location,
+            title: 'My location',
+            map: this.map,
+            icon: this.getMarkerIcon(this.props.homeMarkerIcon)
+        });
     }
 
     setupMap = () => {
@@ -71,12 +151,15 @@ export class DealerLocator extends Component {
             streetViewControl: false,
             fullscreenControl: false
         });
+        this.distanceService = new google.maps.DistanceMatrixService();
         const geocoder = new google.maps.Geocoder();
         this.setupAutocomplete();
         getUserLocation().then(location => {
             this.setState({searchLocation: location});
+            this.calculateDistance(location);
             this.map.setCenter(location);
             this.map.setZoom(11);
+            this.setHomeMarker(location);
             geocoder.geocode({ location: location }, (results, status) => {
                 if (status === 'OK') {
                     if (results[0]) {
@@ -85,7 +168,6 @@ export class DealerLocator extends Component {
                 }
             });
         });
-        this.props.dealers.forEach(this.addDealerMarker);
     };
 
     setupAutocomplete() {
@@ -102,24 +184,46 @@ export class DealerLocator extends Component {
                 this.map.setCenter(place.geometry.location);
                 this.map.setZoom(11);
             }
-            this.setState({searchLocation: place.geometry.location.toJSON()});
+            const location = place.geometry.location.toJSON();
+            this.setState({searchLocation: location});
+            this.setHomeMarker(location);
+            this.calculateDistance(location);
+        });
+    }
+
+    clearMarkers() {
+        this.markers.forEach(m => {
+            m.setMap(null);
+        });
+        this.markers = [];
+    }
+
+    calculateDistance(searchLocation) {
+        const {dealers, limit} = this.props;
+        if (!searchLocation) return dealers;
+        Promise.map(dealers, dealer => {
+            return this.getDistance(searchLocation, dealer.location).then(result => {
+                Object.assign(dealer, result);
+                return dealer;
+            });
+        }).then(data => {
+            let result = data.sort((a, b) => a.distance - b.distance);
+            if (limit) result = result.slice(0, limit);
+            this.clearMarkers();
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend(searchLocation);
+            result.forEach(dealer => {
+                bounds.extend(dealer.location);
+                this.addDealerMarker(dealer);
+            });
+            this.map.fitBounds(bounds);
+            this.map.setZoom(this.map.getZoom() - 1);
+            this.setState({dealers: result});
         });
     }
 
     componentDidMount() {
         this.loadGoogleMaps().then(this.setupMap);
-    }
-
-    getSortedDealers() {
-        const {dealers} = this.props;
-        const {searchLocation} = this.state;
-        if (!searchLocation) return dealers;
-        return dealers
-            .map(dealer => {
-                dealer.distance = this.getDistance(searchLocation, dealer.locaton);
-                return dealer;
-            })
-            .sort((a, b) => a.distance - b.distance);
     }
 
     onDealerClick({location, id}) {
@@ -128,8 +232,7 @@ export class DealerLocator extends Component {
         this.setState({activeDealerId: id});
     }
 
-    render({searchHint}, {activeDealerId}) {
-        const sortedDealers = this.getSortedDealers();
+    render({searchHint, travelMode}, {activeDealerId, dealers}) {
         return (
             <div className={classNames.container}>
                 <div className={classNames.searchBox}>
@@ -139,7 +242,7 @@ export class DealerLocator extends Component {
                     </div>
                     {searchHint && <div className={classNames.searchHint}>{searchHint}</div>}
                     <ul className={classNames.dealersList}>
-                        {sortedDealers.map(dealer => {
+                        {dealers.map(dealer => {
                             const locationStr = `${dealer.location.lat},${dealer.location.lng}`;
                             return (
                                 <li
@@ -147,8 +250,12 @@ export class DealerLocator extends Component {
                                     onClick={() => this.onDealerClick(dealer)}
                                     className={cx({[classNames.activeDealer]: dealer.id === activeDealerId})}>
                                     <h4>{dealer.name}</h4>
-                                    {dealer.distance && (
-                                        <div className={classNames.dealerDistance}>{dealer.distance}km away</div>
+                                    {dealer.distanceText && (
+                                        <div className={classNames.dealerDistance}>
+                                            {dealer.distanceText} away{' '}
+                                            {dealer.durationText &&
+                                                `(${dealer.durationText} by ${travelModes[travelMode]})`}
+                                        </div>
                                     )}
                                     <address>{dealer.address}</address>
                                     <div className={classNames.dealerActions} onClick={e => e.stopPropagation()}>

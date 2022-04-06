@@ -1,0 +1,169 @@
+.dealerLocator-container {
+    position: relative;
+    background: #fff;
+}
+
+.dealerLocator-container * {
+    box-sizing: border-box;
+}
+
+.dealerLocator-map {
+    border: 1px solid #d7d7d7;
+    background-color: rgb(229, 227, 223);
+    height: 500px;
+}
+
+.dealerLocator-infoWindow {
+    max-width: 200px;
+}
+
+.dealerLocator-infoWindow h4 {
+    margin: 0 0 5px;
+    padding: 0;
+}
+
+.dealerLocator-searchBox {
+    border: 1px solid #d7d7d7;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    position: absolute;
+    top: 15px;
+    bottom: 30px;
+    left: 10px;
+    width: 350px;
+    background: #fff;
+    z-index: 1;
+}
+
+.dealerLocator-dealersList {
+    border: 1px solid #d7d7d7;
+    list-style: none;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.dealerLocator-dealersList li {
+    background: #f8f8f8;
+    color: #333333;
+    padding: 15px;
+    margin: 0 0 1px 0;
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.dealerLocator-dealersList .dealerLocator-activeShop {
+    background: #ebebeb;
+}
+
+.dealerLocator-dealersList li h4 {
+    margin: 0 0 5px;
+    font-size: 14px;
+}
+
+.dealerLocator-dealersList li address {
+    margin: 0 0 10px;
+}
+
+.dealerLocator-searchInput {
+    border: 1px solid #d7d7d7;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.dealerLocator-searchInput input {
+    border: 0;
+    background: #ffffff;
+    line-height: 36px;
+    height: 36px;
+    width: 100%;
+    padding: 0 36px 0 15px;
+    font-size: 14px;
+    outline: none;
+}
+
+.dealerLocator-searchIcon {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    width: 24px;
+    height: 16px;
+}
+
+.dealerLocator-searchHint {
+    margin-bottom: 10px;
+    padding: 0 2px 0;
+    font-size: 14px;
+    color: #696969;
+}
+
+.dealerLocator-dealerActions {
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.dealerLocator-dealerActions a {
+    margin-right: 10px;
+    text-decoration: none;
+    color: #999999;
+    transition: color 0.2s ease;
+}
+
+.dealerLocator-dealerActions a:hover {
+    color: #000;
+}
+
+.dealerLocator-dealerActions a:hover svg {
+    fill: #000;
+}
+
+.dealerLocator-dealerActions a svg {
+    vertical-align: middle;
+    margin-right: 3px;
+    fill: #999999;
+    transition: fill 0.2s ease;
+}
+
+.dealerLocator-dealerDistance {
+    color: #999999;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 767px) {
+    .dealerLocator-searchBox {
+        padding: 10px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: auto;
+        width: auto;
+    }
+
+    .dealerLocator-dealersList {
+        position: absolute;
+        top: 350px;
+        left: -11px;
+        right: -11px;
+        height: 250px;
+    }
+
+    .dealerLocator-map {
+        height: 350px;
+    }
+
+    .dealerLocator-searchHint {
+        display: none;
+    }
+
+    .dealerLocator-searchInput {
+        margin-bottom: 0;
+    }
+
+    .dealerLocator-container {
+        padding-bottom: 270px;
+    }
+}
